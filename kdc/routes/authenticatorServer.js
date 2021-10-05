@@ -1,12 +1,9 @@
 const express = require('express');
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const jwt = require("jsonwebtoken");
-const dotenv = require('dotenv');
-dotenv.config();
+const encryptMessages = require('../utils/encryptMessages');
 
 const User = require('../models/user');
-// const { authenticateToken, generateAccessToken } = require('../utils/authenticateToken');
-
 
 const router = express.Router();
 
@@ -76,6 +73,72 @@ router.post("/signup", async (req, res)=> {
         });
 
     });
+});
+
+router.post("/signin", async (req, res) => {
+    const username = req.body.username;
+    
+    if(!username){
+        return res.send({
+            success: false,
+            message: "Error: Username field cannot be empty"
+        });
+    }
+    
+    User.find({
+        username: username,
+    }, async (err, users) => {
+        if(err){
+            return res.send({
+                success: false,
+                message: "Error: Server Error"
+            });
+        } else if(users.length != 1){
+            return res.send({
+                success: false,
+                message: "Error: DB Error"
+            });
+        }
+
+        const user = users[0];
+
+        const timeElapsed = Date.now();
+        const todaysDate = new Date(timeElapsed);
+        const TGS_ID = crypto.randomBytes(5).toString('hex');
+        const TGS_SessionKey = crypto.randomBytes(10).toString('hex'); 
+        const TGS_SecretKey = await bcrypt.hash(TGS_ID, 8);
+        
+        messageForClient = {
+            TGS_ID: TGS_ID,
+            timestamp: todaysDate.toUTCString(),
+            TGS_SessionKey: TGS_SessionKey
+        }
+
+        messageForTGT = {
+            username: user.username,
+            TGS_ID: TGS_ID,
+            timestamp: todaysDate.toUTCString(),
+            TGS_SessionKey: TGS_SessionKey
+        }
+
+        // console.log('messageForClient: ', messageForClient);
+        // console.log('messageForTGT: ', messageForTGT);
+
+        // console.log('client key: ', user.secretKey);
+
+        const encryptedClientMessage = encryptMessages(messageForClient, user.secretKey);
+        const encryptedTGT = encryptMessages(messageForTGT, TGS_SecretKey);
+
+        // console.log("encrytedClientMessage", encryptedClientMessage);
+        // console.log("encryptedTGT", encryptedTGT);
+        res.json({
+            success: true,
+            encryptedClientMessage: encryptedClientMessage,
+            encryptedTGT: encryptedTGT,
+            clientSecretKey: user.secretKey 
+        });
+    });
+    
 });
 
 module.exports = router;
