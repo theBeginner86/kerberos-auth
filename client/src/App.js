@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import SignUp from './components/signup/signup';
 import SignIn from './components/signin/signin';
+import HomePage from './components/homepage/home-page';
+import MyNavbar from './components/navbar/navbar';
+import ProfilePage from './components/profilepage/profile-page';
 
 function App(props) {
 
@@ -23,9 +26,12 @@ function App(props) {
 
   return (
     <Router>
+        <MyNavbar logOutHandle={logOutHandle} isLogout={isLogout}/>
         <Switch>
+          <Route path='/' component={HomePage} exact />
           <Route path='/signup' component={SignUp} />
           <Route path="/signin" render={(props) => (<SignIn {...props} isLogout={isLogout} setIsLogout={setIsLogout} />)}/>
+          <Route path='/profile' render={(props) => (<ProfilePage {...props} isLogout={isLogout} setIsLogout={setIsLogout} />)}/>
         </Switch>
     </Router>
   );
