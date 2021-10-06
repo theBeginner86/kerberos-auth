@@ -19,7 +19,7 @@ const UserSchema = new Schema({
         required: true,
         default: ''
     },
-    userSecrectKey: {
+    secretKey: {
         type: String,
         default: ''
     }
@@ -30,8 +30,8 @@ UserSchema.pre('save', async function (next){
     if(user.isModified('password')){
         user.password = await bcrypt.hash(user.password, 8);
     }
-    const userSecrectKey = crypto.randomBytes(64).toString('hex');
-    user.userSecrectKey = userSecrectKey;
+    const secretKey = crypto.randomBytes(64).toString('hex');
+    user.secretKey = secretKey;
     next();
 })
 
