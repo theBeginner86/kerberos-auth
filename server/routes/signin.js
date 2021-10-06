@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const decryptedMessages = require('../utils/decryptMessages');
+const {generateAccessToken} = require('../utils/authenticateToken');
 
 const AccessLogs = require('../models/accessLogs');
 
@@ -36,11 +37,11 @@ router.post('/signin', async (req, res) => {
 
     // console.log(encryptedUserCredentials, encryptedServiceTicket, serviceSecretKey);
 
-
-
+    const accessToken = generateAccessToken(userCredentials_username);
 
     res.send({
-        success: true
+        success: true,
+        accessToken: accessToken
     })
 
 });
