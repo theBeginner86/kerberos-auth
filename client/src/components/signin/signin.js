@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useHistory} from 'react-router-dom'
-import {signinExistingUser} from "../../api/userApi";
+import {requestForTGS, requestForAS, requestForServer} from "../../api/userApi";
 import decryptMessages from "../../utils/decryptMessages";
 import encryptMessages from "../../utils/encryptMessages";
 import './signin.css'
@@ -17,6 +17,64 @@ function SignIn() {
 
     const [signinResponse, setSigninResponse] = useState("");
 
+    async function Server(messageForServer) {
+
+        try {
+            console.log("Inside Server calling api");
+            const { data } = await requestForServer(messageForServer);
+            console.log(data);
+
+            if(data.success){
+                console.log(data.success);
+                // setIsLogout(false);
+                // localStorage.setItem("token", data.accessToken);
+                console.log(history);
+                history.push("/");
+            }
+            
+        } catch (err) {
+            console.log(err);
+            setSigninResponse({message: err})
+        }
+
+    }
+
+    async function TGS(messageForTGS, TGS_SessionKey){
+        try {
+            console.log("inside TGS calling api");
+            const { data } = await requestForTGS(messageForTGS);
+            console.log(data);
+            const encryptedServiceTicket = data.encryptedServiceTicket;
+            const encryptedUserCredentials = data.encryptedUserCredentials;
+            const serviceSecretKey = data.serviceSecretKey;
+
+            const { username, timestamp, Service_SessionKey } = decryptMessages(encryptedUserCredentials, TGS_SessionKey);
+
+            const timeElapsed = Date.now();
+            const todaysDate = new Date(timeElapsed);
+            const timeStamp = todaysDate.toUTCString();
+            
+            const userCredentials = {
+                username,
+                timeStamp
+            };
+
+            const newEncryptedUserCredentials = encryptMessages(userCredentials, Service_SessionKey);
+            
+            const messageForServer = {
+                newEncryptedUserCredentials,
+                encryptedServiceTicket,
+                serviceSecretKey
+            };
+
+            Server(messageForServer);
+
+        } catch (err) {
+            console.log(err);
+            setSigninResponse({message: err});
+        }
+    }
+
     async function handleSubmit(event) {
         event.preventDefault();
 
@@ -26,17 +84,17 @@ function SignIn() {
         };
 
         try {
-            const { data } = await signinExistingUser(userData);
+            const { data } = await requestForAS(userData);
             console.log("data: ", data);
             setSigninResponse(data);
             // console.log("signinResponse: ", signinResponse);
             
             const encryptedClientMessage = data.encryptedClientMessage;
-            console.log(encryptedClientMessage);
+            // console.log(encryptedClientMessage);
             const clientSecretKey = data.clientSecretKey;  
-            console.log(clientSecretKey);
+            // console.log(clientSecretKey);
             const encryptedTGT = data.encryptedTGT;
-            console.log(encryptedTGT);
+            // console.log(encryptedTGT);
             const { TGS_ID, TGS_SessionKey, timestamp } = decryptMessages(encryptedClientMessage, clientSecretKey);
             // console.log(TGS_ID, timestamp, TGS_SessionKey);
 
@@ -49,23 +107,19 @@ function SignIn() {
                 timeStamp: todaysDate.toUTCString()
             };
 
-            const encryptedUserCredentails = encryptMessages(userCredentials, TGS_SessionKey);
+            const encryptedUserCredentials = encryptMessages(userCredentials, TGS_SessionKey);
 
             const messageForTGS = {
                 encryptedTGT,
-                encryptedUserCredentails
+                encryptedUserCredentials
             };
             
             console.log(messageForTGS);
 
-            if(data.success){
-                // setIsLogout(false);
-                // localStorage.setItem("token", data.accessToken);
-                console.log(history);
-                history.push("/");
-            }
+            TGS(messageForTGS, TGS_SessionKey);
+
         } catch(err) {
-            console.log("inside");
+            // console.log("inside");
             console.log(err);
             setSigninResponse({message: err});
         }
