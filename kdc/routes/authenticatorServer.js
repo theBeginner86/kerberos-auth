@@ -77,12 +77,20 @@ router.post("/signup", async (req, res)=> {
 
 router.post("/signin", async (req, res) => {
     const username = req.body.username;
+    const password = req.body.password;
     
     if(!username){
         return res.send({
             success: false,
             message: "Error: Username field cannot be empty"
         });
+    }
+
+    if(!password){
+        return res.send({
+            success: false,
+            message: "Error: Password field cannot be empty"
+        })
     }
     
     User.find({
@@ -101,6 +109,15 @@ router.post("/signin", async (req, res) => {
         }
 
         const user = users[0];
+        const passwordPromise = await bcrypt.compare(password, user.password);
+        
+        console.log(passwordPromise);
+        if(!passwordPromise){
+            return res.send({
+                success: false,
+                message: "Error: Invalid Password"
+            });
+        }
 
         const timeElapsed = Date.now();
         const todaysDate = new Date(timeElapsed);
