@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authenticatorServer = require("./routes/authenticatorServer");
+const ticketGrantingServer = require('./routes/ticketGrantingServer');
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ app.use(express.json());
 connectDB();
 
 app.use("/authenticator_server", authenticatorServer);
-// app.use("/ticket_generating_server");
+app.use("/ticket_granting_server", ticketGrantingServer);
 
 app.get("/", (req, res) => {
     res.send("KDC server is running!!!")

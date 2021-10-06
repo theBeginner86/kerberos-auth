@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const encryptMessages = require('../utils/encryptMessages');
 
 const User = require('../models/user');
+const TGS_SecretKeys = require('../models/TGS_SecretKey');
 
 const router = express.Router();
 
@@ -121,20 +122,23 @@ router.post("/signin", async (req, res) => {
 
         const timeElapsed = Date.now();
         const todaysDate = new Date(timeElapsed);
+        const timeStamp = todaysDate.toUTCString();
         const TGS_ID = crypto.randomBytes(5).toString('hex');
         const TGS_SessionKey = crypto.randomBytes(10).toString('hex'); 
         const TGS_SecretKey = await bcrypt.hash(TGS_ID, 8);
+
+        TGS_SecretKeys.push(TGS_SecretKey);
         
         messageForClient = {
             TGS_ID: TGS_ID,
-            timestamp: todaysDate.toUTCString(),
+            timestamp: timeStamp,
             TGS_SessionKey: TGS_SessionKey
         }
 
         messageForTGT = {
             username: user.username,
             TGS_ID: TGS_ID,
-            timestamp: todaysDate.toUTCString(),
+            timestamp: timeStamp,
             TGS_SessionKey: TGS_SessionKey
         }
 
