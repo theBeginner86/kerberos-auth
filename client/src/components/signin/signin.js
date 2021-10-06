@@ -5,11 +5,11 @@ import decryptMessages from "../../utils/decryptMessages";
 import encryptMessages from "../../utils/encryptMessages";
 import './signin.css'
 
-function SignIn() {
+function SignIn(props) {
 
     // console.log(props);
-    // const {setIsLogout, isLogout} = props;
-    // console.log(isLogout);
+    const {setIsLogout, isLogout} = props;
+    console.log(isLogout);
     const history = useHistory();
 
     const [username, setUsername] = useState("");
@@ -26,8 +26,8 @@ function SignIn() {
 
             if(data.success){
                 console.log(data.success);
-                // setIsLogout(false);
-                // localStorage.setItem("token", data.accessToken);
+                setIsLogout(false);
+                localStorage.setItem("token", data.accessToken);
                 console.log(history);
                 history.push("/");
             }
