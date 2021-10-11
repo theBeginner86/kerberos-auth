@@ -14,30 +14,17 @@ function ProfilePage(props){
 
     const [username, setUsername] = useState("");
 
-    console.log("inside try profile page");
-    console.log(isLogout);
-    console.log("outside fun");
-
-    const fun = async() => {
-        console.log("inside func");
-        if(!isLogout){
-            console.log("not logged out")
+    useState(() => {
+        if(isLogout){
             const token = localStorage.getItem("token");
-
             const username = decryptMessages(token, process.env.REACT_APP_ACCESS_TOKEN_SECRET);
             console.log(username);
-
-            if(!isLogout){
-                setUsername(username);
-            } else {
-                return <Redirect to="/"/>
-            }
-        }else{
-            return <Redirect to="/"/>
+    
+            setUsername(username);
+        } else {
+            return <Redirect to ='/'/>
         }
-    }
-
-    fun();
+    }, [username, isLogout]);
 
     return (
         <div className="content">

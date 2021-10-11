@@ -11,3 +11,10 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.heading-per-page {
+  margin: auto;
+  width: fit-content;
+  font-family: 'Sacramento';
+  font-size: 3rem;
+}
